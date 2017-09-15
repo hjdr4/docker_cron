@@ -1,0 +1,18 @@
+#!/bin/bash
+mkfifo --mode 0640 /var/log/syslog
+
+( /usr/sbin/rsyslogd -n & wait $!; echo "rsyslogd exited"; kill 1 )&
+
+/usr/sbin/cron -f -l -L 15 &
+PID=$!
+
+trap "kill \$PID; echo killed;exit" SIGINT SIGTERM
+
+
+echo 'SHELL=/bin/bash
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+' > /etc/cron.d/crons 
+
+echo "$CRONS" >> /etc/cron.d/crons
+
+cat /var/log/syslog
